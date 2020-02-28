@@ -7,7 +7,7 @@ import (
 )
 
 func mustOpenFile(fileName string, flag int) (*os.File, bool, error) {
-	filePathName := filepath.Join(GetCurrPath(), fileName)
+	filePathName := fileName
 	path, _ := filepath.Split(filePathName)
 	if !isExist(filePathName) {
 		if !isExist(path) {

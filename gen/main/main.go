@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	gg "github.com/hanjingo/toolbox/gen"
@@ -12,8 +13,11 @@ import (
 func main() {
 	for {
 		var cmd string
-		fmt.Println("请输入要生成的语言类型(go,js,c#...)>>")
+		fmt.Println("请输入要生成的语言类型(go,js,c#...),按q退出>>")
 		fmt.Scanln(&cmd)
+		if strings.ToUpper(cmd) == "Q" {
+			return
+		}
 		doGen(cmd)
 	}
 }
@@ -23,7 +27,7 @@ func doGen(lang string) {
 	var addr string
 	fmt.Scanln(&addr)
 	if addr == "" {
-		addr = gg.GetCurrPath()
+		addr = filepath.Join(gg.GetCurrPath(), "gen.json")
 	}
 	conf := gg.GetCodeGenConfig()
 	err := gg.LoadJsonConfig(addr, conf)

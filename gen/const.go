@@ -16,19 +16,20 @@ const (
 	BOOL   string = "BOOL"
 	ARRAY  string = "ARRAY"
 	MAP    string = "MAP"
+	CLASS  string = "CLASS"
 )
 
 var (
 	PATH = GetCurrPath()
 
 	MSGID_PACK_NAME = "msgid"
-	MSGID_FILE_NAME = ""
+	MSGID_PATH_NAME = ""
 
 	MODEL_PACK_NAME = "model"
-	MODEL_FILE_NAME = ""
+	MODEL_PATH_NAME = ""
 )
 
 func SetEnv() {
-	MSGID_FILE_NAME = filepath.Join(PATH, MSGID_PACK_NAME)
-	MODEL_FILE_NAME = filepath.Join(PATH, MODEL_PACK_NAME)
+	MSGID_PATH_NAME = filepath.Join(PATH, MSGID_PACK_NAME)
+	MODEL_PATH_NAME = filepath.Join(PATH, MODEL_PACK_NAME)
 }

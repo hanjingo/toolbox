@@ -2,8 +2,6 @@ package gen
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 )
 
 type Field struct {
@@ -59,62 +57,25 @@ func NewClass(conf *ClassConfig) *Class {
 	return back
 }
 
-//写 msgid
-func (ci *Class) FormatMsgId() string {
-	var back = ""
-	back += "\n"
-	back += "    " + ci.Name + "Req " + "uint32 = " + strconv.Itoa(ci.Id)
-	if ci.Desc != "" {
-		back += "    " + "//" + ci.Desc
-	}
-	back += "\n"
-	return back
-}
 
-func formatType(args ...string) string {
-	if args == nil || len(args) == 0 {
-		return ""
+//排序
+func SortWithId(arg map[string]*Class) []*Class {
+	var back []*Class
+	for _, item := range arg {
+		back = append(back, item)
 	}
-	switch strings.ToUpper(args[0]) {
-	case UINT8:
-		return "uint8"
-	case UINT32:
-		return "uint32"
-	case UINT64:
-		return "uint64"
-	case INT:
-		return "int"
-	case INT64:
-		return "int64"
-	case FLOAT:
-		return "float32"
-	case DOUBLE:
-		return "float64"
-	case STRING:
-		return "string"
-	case BOOL:
-		return "bool"
-	case ARRAY:
-		return "[]" + formatType(args[0])
-	case MAP:
-		return "map[" + formatType(args[1]) + "]" + formatType(args[2])
-	default:
-		return ""
+	if len(back) <= 1 {
+		return back
 	}
-}
-
-//写 model
-func (ci *Class) FormatModel() string {
-	var back = ""
-	back += "\n"
-	if ci.Desc != "" {
-		back += "//" + ci.Desc + "\n"
+	for i := 0; i < len(back)-1; i++ {
+		for j := i; j < len(back); j++ {
+			if back[i].Id > back[j].Id {
+				//swap
+				temp := back[i]
+				back[i] = back[j]
+				back[j] = temp
+			}
+		}
 	}
-	back += "type " + ci.Name + " struct {\n"
-	for _, field := range ci.Fields {
-		back += field.Name + " "
-		back += formatType(field.Type, field.Type1, field.Type2)
-	}
-	back += "}\n"
 	return back
 }

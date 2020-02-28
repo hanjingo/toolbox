@@ -3,6 +3,8 @@ package gen
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -28,14 +30,56 @@ func NewGoGenerator1(conf *Config) *GoGenerator1 {
 	return back
 }
 
+func (gen *GoGenerator1) formatType(args ...string) string {
+	if args == nil || len(args) == 0 {
+		return ""
+	}
+	switch strings.ToUpper(args[0]) {
+	case UINT8:
+		return "uint8"
+	case UINT32:
+		return "uint32"
+	case UINT64:
+		return "uint64"
+	case INT:
+		return "int"
+	case INT64:
+		return "int64"
+	case FLOAT:
+		return "float32"
+	case DOUBLE:
+		return "float64"
+	case STRING:
+		return "string"
+	case BOOL:
+		return "bool"
+	case ARRAY:
+		return "[]" + gen.formatType(args[1])
+	case MAP:
+		return "map[" + gen.formatType(args[1]) + "]" + gen.formatType(args[2])
+	default:
+		return args[0]
+	}
+}
+
 // msgid.go
+func (gen *GoGenerator1) formatMsgid(ci *Class) string {
+	var back = ""
+	back += "\n"
+	back += "    " + ci.Name + "Req " + "uint32 = " + strconv.Itoa(ci.Id)
+	if ci.Desc != "" {
+		back += "    " + "//" + ci.Desc
+	}
+	back += "\n"
+	return back
+}
 func (gen *GoGenerator1) GenMsgid() error {
 	//msgid
-
+	default_file_name := "msgid.go"
 	items := SortWithId(gen.Items)
 	for _, item := range items {
 		var namespace = MSGID_PACK_NAME
-		var fname = MSGID_FILE_NAME
+		var fname = filepath.Join(MSGID_PATH_NAME, default_file_name)
 
 		if item.MsgIdNameSpace != "" {
 			namespace = item.MsgIdNameSpace
@@ -73,7 +117,7 @@ func (gen *GoGenerator1) GenMsgid() error {
 			}
 		}
 		fd.Close()
-		src += item.FormatMsgId()
+		src += gen.formatMsgid(item)
 		src += ")\n"
 		fd1, err := cleanFile(fname)
 		if err != nil {
@@ -86,12 +130,31 @@ func (gen *GoGenerator1) GenMsgid() error {
 }
 
 // model*.go
+func (gen *GoGenerator1) formatModel(ci *Class) string {
+	var back = ""
+	back += "\n"
+	if ci.Desc != "" {
+		back += "//" + ci.Desc + "\n"
+	}
+	back += "type " + ci.Name + " struct {\n"
+	for _, field := range ci.Fields {
+		back += "	" + field.Name + " "
+		back += gen.formatType(field.Type, field.Type1, field.Type2)
+		if field.Desc != "" {
+			back += " //" + field.Desc
+		}
+		back += "\n"
+	}
+	back += "}\n"
+	return back
+}
 func (gen *GoGenerator1) GenModel() error {
 	//赋值
+	default_file_name := "model.go"
 	items := SortWithId(gen.Items)
 	for _, item := range items {
 		var namespace = MODEL_PACK_NAME
-		var fname = MODEL_FILE_NAME
+		var fname = filepath.Join(MODEL_PATH_NAME, default_file_name)
 
 		//设置文件
 		if item.ModelNameSpace != "" {
@@ -108,31 +171,9 @@ func (gen *GoGenerator1) GenModel() error {
 		if isNewFile {
 			src = "package " + namespace + "\n"
 		}
-		src += item.FormatModel()
+		src += gen.formatModel(item)
 		fd.WriteString(src)
 		fd.Close()
 	}
 	return nil
-}
-
-//排序
-func SortWithId(arg map[string]*Class) []*Class {
-	var back []*Class
-	for _, item := range arg {
-		back = append(back, item)
-	}
-	if len(back) <= 1 {
-		return back
-	}
-	for i := 0; i < len(back)-1; i++ {
-		for j := i; j < len(back); j++ {
-			if back[i].Id > back[j].Id {
-				//swap
-				temp := back[i]
-				back[i] = back[j]
-				back[j] = temp
-			}
-		}
-	}
-	return back
 }
