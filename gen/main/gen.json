@@ -1,0 +1,15 @@
+{
+    "GameName":"tp",
+    "Path":"/Users/hehanjing/program/gopath/src/github.com/hanjingo/casino/tool/gen_back/main",
+    "StartIndex":1000,
+    "Class":[
+        {
+            "Name":"JoinRoomReq",
+            "Desc":"进房请求",
+            "Fields":[
+                ["结果", "Result", "uint32"],
+                ["所有玩家", "Players", "map", "uint32", "players"]
+            ]
+        }
+    ]
+}
