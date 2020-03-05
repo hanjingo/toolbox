@@ -13,6 +13,7 @@ type Field struct {
 }
 
 type Class struct {
+	NoPrintId      bool     `json:"NoPrintId"`
 	Id             int      `json:"Id"`
 	Desc           string   `json:"Desc"`
 	Name           string   `json:"Name"`
@@ -25,6 +26,7 @@ type Class struct {
 
 func NewClass(conf *ClassConfig) *Class {
 	back := &Class{Fields: []*Field{}}
+	back.NoPrintId = conf.NoPrintId
 	back.Id = conf.Id
 	back.Desc = conf.Desc
 	back.Name = conf.Name
@@ -56,7 +58,6 @@ func NewClass(conf *ClassConfig) *Class {
 	}
 	return back
 }
-
 
 //排序
 func SortWithId(arg map[string]*Class) []*Class {

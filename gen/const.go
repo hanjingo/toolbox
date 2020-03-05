@@ -16,7 +16,7 @@ const (
 	BOOL   string = "BOOL"
 	ARRAY  string = "ARRAY"
 	MAP    string = "MAP"
-	CLASS  string = "CLASS"
+	POINT  string = "*"
 )
 
 var (

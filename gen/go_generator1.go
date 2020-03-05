@@ -16,14 +16,16 @@ func NewGoGenerator1(conf *Config) *GoGenerator1 {
 	back := &GoGenerator1{
 		Items: make(map[string]*Class),
 	}
-	start := 0
+	start := conf.StartIndex
 	for _, e := range conf.Classes {
-		if e.Id != 0 {
-			start = e.Id
-		} else {
-			start++
+		if !e.NoPrintId {
+			if e.Id != 0 {
+				start = e.Id
+			} else {
+				start++
+			}
+			e.Id = start
 		}
-		e.Id = start
 		class := NewClass(e)
 		back.Items[class.Name] = class
 	}
@@ -57,6 +59,8 @@ func (gen *GoGenerator1) formatType(args ...string) string {
 		return "[]" + gen.formatType(args[1])
 	case MAP:
 		return "map[" + gen.formatType(args[1]) + "]" + gen.formatType(args[2])
+	case POINT:
+		return "*" + gen.formatType(args[1])
 	default:
 		return args[0]
 	}
@@ -66,27 +70,28 @@ func (gen *GoGenerator1) formatType(args ...string) string {
 func (gen *GoGenerator1) formatMsgid(ci *Class) string {
 	var back = ""
 	back += "\n"
-	back += "    " + ci.Name + "Req " + "uint32 = " + strconv.Itoa(ci.Id)
+	back += "    " + ci.Name + " uint32 = " + strconv.Itoa(ci.Id)
 	if ci.Desc != "" {
-		back += "    " + "//" + ci.Desc
+		back += " " + "//" + ci.Desc
 	}
-	back += "\n"
 	return back
 }
 func (gen *GoGenerator1) GenMsgid() error {
 	//msgid
-	default_file_name := "msgid.go"
 	items := SortWithId(gen.Items)
 	for _, item := range items {
+		default_file_name := "msgid.go"
+		if item.NoPrintId {
+			continue
+		}
+		if item.MsgIdFileName != "" {
+			default_file_name = item.MsgIdFileName + ".go"
+		}
 		var namespace = MSGID_PACK_NAME
 		var fname = filepath.Join(MSGID_PATH_NAME, default_file_name)
 
 		if item.MsgIdNameSpace != "" {
 			namespace = item.MsgIdNameSpace
-		}
-
-		if item.MsgIdFileName != "" {
-			fname = item.MsgIdFileName
 		}
 
 		//设置文件
@@ -118,7 +123,7 @@ func (gen *GoGenerator1) GenMsgid() error {
 		}
 		fd.Close()
 		src += gen.formatMsgid(item)
-		src += ")\n"
+		src += "\n)"
 		fd1, err := cleanFile(fname)
 		if err != nil {
 			return err
@@ -141,7 +146,7 @@ func (gen *GoGenerator1) formatModel(ci *Class) string {
 		back += "	" + field.Name + " "
 		back += gen.formatType(field.Type, field.Type1, field.Type2)
 		if field.Desc != "" {
-			back += " //" + field.Desc
+			back += " " + "//" + field.Desc
 		}
 		back += "\n"
 	}
@@ -150,18 +155,18 @@ func (gen *GoGenerator1) formatModel(ci *Class) string {
 }
 func (gen *GoGenerator1) GenModel() error {
 	//赋值
-	default_file_name := "model.go"
 	items := SortWithId(gen.Items)
 	for _, item := range items {
+		default_file_name := "model.go"
+		if item.ModelFileName != "" {
+			default_file_name = item.ModelFileName + ".go"
+		}
 		var namespace = MODEL_PACK_NAME
 		var fname = filepath.Join(MODEL_PATH_NAME, default_file_name)
 
 		//设置文件
 		if item.ModelNameSpace != "" {
 			namespace = item.ModelNameSpace
-		}
-		if item.ModelFileName != "" {
-			fname = item.ModelFileName
 		}
 		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
 		if err != nil {
@@ -177,3 +182,5 @@ func (gen *GoGenerator1) GenModel() error {
 	}
 	return nil
 }
+
+/*handle.go*/

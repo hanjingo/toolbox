@@ -17,6 +17,7 @@ type Config struct {
 
 type ClassConfig struct {
 	Id             int        `json:"Id"`
+	NoPrintId      bool       `json:"NoPrintId"` //不打印id
 	Name           string     `json:"Name"`
 	Desc           string     `json:"Desc"`
 	MsgIdFileName  string     `json:"MsgIdFileName"`

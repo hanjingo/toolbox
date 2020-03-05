@@ -23,11 +23,11 @@ func main() {
 }
 
 func doGen(lang string) {
-	fmt.Println("请输入json文件绝对路径(例:c:\\007.json),默认读取当前路径的gen.json>>")
+	fmt.Println("请输入json文件绝对路径(例:c:\\007.json),默认读取当前路径的main.json>>")
 	var addr string
 	fmt.Scanln(&addr)
 	if addr == "" {
-		addr = filepath.Join(gg.GetCurrPath(), "gen.json")
+		addr = filepath.Join(gg.GetCurrPath(), "main.json")
 	}
 	conf := gg.GetCodeGenConfig()
 	err := gg.LoadJsonConfig(addr, conf)
