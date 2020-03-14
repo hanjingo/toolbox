@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	fs "github.com/hehanjingLoveGithub/component/file_master/http"
-	mm "github.com/hehanjingLoveGithub/component/memory_manager"
-	"github.com/hehanjingLoveGithub/util"
+	mm "github.com/hanjingo/component/memory_manager"
+	fs "github.com/hanjingo/toolbox/file_master/http"
+	"github.com/hanjingo/util"
 )
 
 var lastIndex float64 = 0

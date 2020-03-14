@@ -13,8 +13,8 @@ import (
 
 	"github.com/hanjingo/util"
 
-	fm "github.com/hanjingo/pattern/component/file_manager"
-	mm "github.com/hanjingo/pattern/component/memory_manager"
+	fm "github.com/hanjingo/component/file_manager"
+	mm "github.com/hanjingo/component/memory_manager"
 )
 
 type Uploader1 struct {

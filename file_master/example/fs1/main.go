@@ -4,10 +4,10 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/hehanjingLoveGithub/util"
+	"github.com/hanjingo/util"
 
-	fs "github.com/hehanjingLoveGithub/component/file_master/http"
-	mm "github.com/hehanjingLoveGithub/component/memory_manager"
+	mm "github.com/hanjingo/component/memory_manager"
+	fs "github.com/hanjingo/toolbox/file_master/http"
 )
 
 func genFilePathName(args ...interface{}) string {
