@@ -13,12 +13,12 @@ import (
 
 	"github.com/hanjingo/util"
 
-	fm "github.com/hanjingo/component/file_manager"
 	mm "github.com/hanjingo/component/memory_manager"
+	fm "github.com/hanjingo/toolbox/file_master"
 )
 
 type Uploader1 struct {
-	memory         mm.MemoryManagerI  //内存管理器
+	memory         *mm.MemoryManager1 //内存管理器
 	maxSliceLimit  int64              //最大切片上传限制(B)
 	uploadTimeOut  time.Duration      //上传超时 单位(s)
 	cache          chan *fm.FileSlice //上传缓存
@@ -27,7 +27,7 @@ type Uploader1 struct {
 	uploaded_slice float64            //已经上传的片数
 }
 
-func NewUploader1(limit int64, memory mm.MemoryManagerI, uploadDur time.Duration) *Uploader1 {
+func NewUploader1(limit int64, memory *mm.MemoryManager1, uploadDur time.Duration) *Uploader1 {
 	return &Uploader1{
 		memory:         memory,
 		maxSliceLimit:  limit,

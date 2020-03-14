@@ -10,8 +10,8 @@ import (
 
 	"github.com/hanjingo/util"
 
-	fm "github.com/hanjingo/component/file_manager"
 	mm "github.com/hanjingo/component/memory_manager"
+	fm "github.com/hanjingo/toolbox/file_master"
 )
 
 type Downloader1 struct {
@@ -21,12 +21,12 @@ type Downloader1 struct {
 	combineMap   map[int]*fm.FileSlice
 	currIndex    int
 	bDownload    bool
-	memory       mm.MemoryManagerI //内存管理器
+	memory       mm.MemoryManager1 //内存管理器
 	finish       context.CancelFunc
 	endTask      func(filePathName string)
 }
 
-func NewDownloader1(filePathName string, endTask func(filePathName string), memory mm.MemoryManagerI) *Downloader1 {
+func NewDownloader1(filePathName string, endTask func(filePathName string), memory mm.MemoryManager1) *Downloader1 {
 	return &Downloader1{
 		mu:           new(sync.Mutex),
 		filePathName: filePathName,

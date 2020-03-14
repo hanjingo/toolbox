@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"sync"
 
-	fm "github.com/hanjingo/component/file_manager"
 	mm "github.com/hanjingo/component/memory_manager"
 	"github.com/hanjingo/network"
+	fm "github.com/hanjingo/toolbox/file_master"
 )
 
 type FileServer1 struct {
@@ -17,12 +17,12 @@ type FileServer1 struct {
 	ip     string
 	port   int
 	api    string
-	memory mm.MemoryManagerI                //内存管理器
+	memory *mm.MemoryManager1               //内存管理器
 	path   string                           //文件存放路径
 	f      func(args ...interface{}) string //文件路劲生成函数
 }
 
-func NewFileServer1(ip string, port int, api string, memory mm.MemoryManagerI, path string, f func(args ...interface{}) string) *FileServer1 {
+func NewFileServer1(ip string, port int, api string, memory *mm.MemoryManager1, path string, f func(args ...interface{}) string) *FileServer1 {
 	return &FileServer1{
 		m:      make(map[string]*Downloader1),
 		ip:     ip,
@@ -110,7 +110,7 @@ func (s *FileServer1) addTask(filePathName string) error {
 	if _, ok := s.m[filePathName]; ok {
 		return nil
 	}
-	downloader = NewDownloader1(filePathName, s.endTask, s.memory)
+	downloader = NewDownloader1(filePathName, s.endTask, *s.memory)
 	downloader.Download()
 	s.m[filePathName] = downloader
 	return nil
