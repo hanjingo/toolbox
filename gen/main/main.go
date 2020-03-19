@@ -40,11 +40,16 @@ func doGen(lang string) {
 	switch strings.ToUpper(lang) {
 	case "GOLANG", "GO":
 		gen := gg.NewGoGenerator1(conf)
-		fmt.Println("生成消息id 结果:", check(gen.GenMsgid))
-		fmt.Println("生成数据结构 结果:", check(gen.GenModel))
+		fmt.Println("生成GO类型消息id 结果:", check(gen.GenMsgid))
+		fmt.Println("生成GO类型数据结构 结果:", check(gen.GenModel))
 		fmt.Println("生成结束")
 	case "JAVASCRIPT", "JS":
 		return
+	case "C#":
+		gen := gg.NewCsGenerator1(conf)
+		fmt.Println("生成C#类型消息id 结果:", check(gen.GenMsgid))
+		fmt.Println("生成C#类型数据结构 结果:", check(gen.GenModel))
+		fmt.Println("生成结束")
 	default:
 		fmt.Println("不支持的语言类型")
 		return
