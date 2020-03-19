@@ -3,7 +3,6 @@ package gen
 import (
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -16,21 +15,27 @@ func NewCsGenerator1(conf *Config) *CsGenerator1 {
 	back := &CsGenerator1{
 		Items: make(map[string]*Class),
 	}
-	start := conf.StartIndex
 	for _, e := range conf.Classes {
-		if !e.NoPrintId {
-			if e.Id != 0 {
-				start = e.Id
-			} else {
-				start++
-			}
-			e.Id = start
-		}
-		class := NewClass(e)
+		class := NewClass(e, conf.PathMap, conf.NameSpaceMap)
 		back.Items[class.Name] = class
 	}
 	return back
 }
+
+func (gen *CsGenerator1) Type() string {
+	return LANG_GO
+}
+
+func (gen *CsGenerator1) Gen() error {
+	if err := gen.GenMsgid(); err != nil {
+		return err
+	}
+	if err := gen.GenModel(); err != nil {
+		return err
+	}
+	return nil
+}
+
 
 func (gen *CsGenerator1) formatType(args ...string) string {
 	if args == nil || len(args) == 0 {
@@ -78,27 +83,33 @@ func (gen *CsGenerator1) formatMsgid(ci *Class) string {
 }
 func (gen *CsGenerator1) GenMsgid() error {
 	//msgid
-	items := SortWithId(gen.Items)
-	for _, item := range items {
-		default_file_name := "msgid.cs"
-		if item.NoPrintId {
+	start := 0
+	temp := make(map[string]*Class)
+	for _, item := range gen.Items {
+		if !isPrintId(item.FileMap) {
 			continue
 		}
-		if item.MsgIdFileName != "" {
-			default_file_name = item.MsgIdFileName + ".cs"
+		if item.Id != 0 {
+			start = item.Id
 		}
-		namespace := "MsgId"
-		fname := filepath.Join(MSGID_PATH_NAME, default_file_name)
-
-		if item.MsgIdNameSpace != "" {
-			namespace = item.MsgIdNameSpace
+		item.Id = start
+		start++
+		temp[item.Name] = item
+	}
+	items := SortWithId(temp)
+	for _, item := range items {
+		namespace := ""
+		if value, ok := item.NameSpaceMap[KEY_ID]; ok {
+			namespace = value
 		}
 
 		//设置文件
+		fname := item.FileMap[KEY_ID]
 		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_CREATE)
 		if err != nil {
 			return err
 		}
+
 
 		//设置内容
 		src := ""
@@ -162,17 +173,16 @@ func (gen *CsGenerator1) GenModel() error {
 	//赋值
 	items := SortWithId(gen.Items)
 	for _, item := range items {
-		default_file_name := "model.cs"
-		if item.ModelFileName != "" {
-			default_file_name = item.ModelFileName + ".cs"
+		if !isPrintModel(item.FileMap) {
+			continue
 		}
-		var namespace = "Model"
-		var fname = filepath.Join(MODEL_PATH_NAME, default_file_name)
 
 		//设置文件
-		if item.ModelNameSpace != "" {
-			namespace = item.ModelNameSpace
+		namespace := ""
+		if value, ok := item.NameSpaceMap[KEY_MODEL]; ok{
+			namespace = value
 		}
+		fname := item.FileMap[KEY_MODEL]
 		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
 		if err != nil {
 			return err

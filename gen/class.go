@@ -13,27 +13,23 @@ type Field struct {
 }
 
 type Class struct {
-	NoPrintId      bool     `json:"NoPrintId"`
 	Id             int      `json:"Id"`
 	Desc           string   `json:"Desc"`
 	Name           string   `json:"Name"`
-	MsgIdFileName  string   `json:"MsgIdFileName"`
-	MsgIdNameSpace string   `json:"MsgIdNameSpace"`
-	ModelFileName  string   `json:"ModelFileName"`
-	ModelNameSpace string   `json:"ModelNameSpace"`
 	Fields         []*Field `json:"Fields"`
+	FileMap map[string]string `json:"FileMap"`
+	NameSpaceMap map[string]string `json:"NameSpaceMap"`
 }
 
-func NewClass(conf *ClassConfig) *Class {
-	back := &Class{Fields: []*Field{}}
-	back.NoPrintId = conf.NoPrintId
+func NewClass(conf *ClassConfig, file map[string]string, namespace map[string]string) *Class {
+	back := &Class{
+		Fields: []*Field{},
+		FileMap: make(map[string]string),
+		NameSpaceMap: make(map[string]string),
+	}
 	back.Id = conf.Id
 	back.Desc = conf.Desc
 	back.Name = conf.Name
-	back.MsgIdFileName = conf.MsgIdFileName
-	back.MsgIdNameSpace = conf.MsgIdNameSpace
-	back.ModelFileName = conf.ModelFileName
-	back.ModelNameSpace = conf.ModelNameSpace
 	for _, value := range conf.Fields {
 		if value == nil || len(value) < 3 {
 			fmt.Println("错误的类定义:", conf.Name)
@@ -56,27 +52,11 @@ func NewClass(conf *ClassConfig) *Class {
 		}
 		back.Fields = append(back.Fields, field)
 	}
-	return back
-}
-
-//排序
-func SortWithId(arg map[string]*Class) []*Class {
-	var back []*Class
-	for _, item := range arg {
-		back = append(back, item)
+	for k, v := range file {
+		back.FileMap[k] = v
 	}
-	if len(back) <= 1 {
-		return back
-	}
-	for i := 0; i < len(back)-1; i++ {
-		for j := i; j < len(back); j++ {
-			if back[i].Id > back[j].Id {
-				//swap
-				temp := back[i]
-				back[i] = back[j]
-				back[j] = temp
-			}
-		}
+	for k, v := range namespace {
+		back.NameSpaceMap[k] = v
 	}
 	return back
 }

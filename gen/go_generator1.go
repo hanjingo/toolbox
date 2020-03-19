@@ -3,33 +3,42 @@ package gen
 import (
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 )
 
 type GoGenerator1 struct {
 	Items map[string]*Class //key:msg name  value:item集合
+	Conf *Config //配置
 }
 
 func NewGoGenerator1(conf *Config) *GoGenerator1 {
 	back := &GoGenerator1{
 		Items: make(map[string]*Class),
+		Conf: conf,
 	}
-	start := conf.StartIndex
 	for _, e := range conf.Classes {
-		if !e.NoPrintId {
-			if e.Id != 0 {
-				start = e.Id
-			} else {
-				start++
-			}
-			e.Id = start
-		}
-		class := NewClass(e)
+		class := NewClass(e, conf.PathMap, conf.NameSpaceMap)
 		back.Items[class.Name] = class
 	}
 	return back
+}
+
+func (gen *GoGenerator1) Type() string {
+	return LANG_GO
+}
+
+func (gen *GoGenerator1) Gen() error {
+	if err := gen.GenMsgid(); err != nil {
+		return err
+	}
+	if err := gen.GenModel(); err != nil {
+		return err
+	}
+	if err := gen.GenErr(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (gen *GoGenerator1) formatType(args ...string) string {
@@ -78,23 +87,28 @@ func (gen *GoGenerator1) formatMsgid(ci *Class) string {
 }
 func (gen *GoGenerator1) GenMsgid() error {
 	//msgid
-	items := SortWithId(gen.Items)
-	for _, item := range items {
-		default_file_name := "msgid.go"
-		if item.NoPrintId {
+	start := 0
+	temp := make(map[string]*Class)
+	for _, item := range gen.Items {
+		if !isPrintId(item.FileMap) {
 			continue
 		}
-		if item.MsgIdFileName != "" {
-			default_file_name = item.MsgIdFileName + ".go"
+		if item.Id != 0 {
+			start = item.Id
 		}
-		namespace := MSGID_PACK_NAME
-		fname := filepath.Join(MSGID_PATH_NAME, default_file_name)
-
-		if item.MsgIdNameSpace != "" {
-			namespace = item.MsgIdNameSpace
+		item.Id = start
+		start++
+		temp[item.Name] = item
+	}
+	items := SortWithId(temp)
+	for _, item := range items {
+		namespace := ""
+		if value, ok := item.NameSpaceMap[KEY_ID]; ok {
+			namespace = value
 		}
 
 		//设置文件
+		fname := item.FileMap[KEY_ID]
 		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_CREATE)
 		if err != nil {
 			return err
@@ -155,19 +169,17 @@ func (gen *GoGenerator1) formatModel(ci *Class) string {
 }
 func (gen *GoGenerator1) GenModel() error {
 	//赋值
-	items := SortWithId(gen.Items)
-	for _, item := range items {
-		default_file_name := "model.go"
-		if item.ModelFileName != "" {
-			default_file_name = item.ModelFileName + ".go"
+	for _, item := range gen.Items {
+		if !isPrintModel(item.FileMap) {
+			continue
 		}
-		var namespace = MODEL_PACK_NAME
-		var fname = filepath.Join(MODEL_PATH_NAME, default_file_name)
 
 		//设置文件
-		if item.ModelNameSpace != "" {
-			namespace = item.ModelNameSpace
+		namespace := ""
+		if value, ok := item.NameSpaceMap[KEY_MODEL]; ok{
+			namespace = value
 		}
+		fname := item.FileMap[KEY_MODEL]
 		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
 		if err != nil {
 			return err
@@ -183,4 +195,69 @@ func (gen *GoGenerator1) GenModel() error {
 	return nil
 }
 
-/*handle.go*/
+/*errid.go*/
+func (gen *GoGenerator1) formatErr(ci *Class) string {
+	back := ""
+	back += "\n"
+	back += ci.Name
+	back += " = Err(" + strconv.Itoa(ci.Id) + ", " + "\"" + ci.Desc + "\")" 
+	return back
+}
+func (gen *GoGenerator1) GenErr() error {
+	start := 0
+	temp := make(map[string]*Class)
+	for _, item := range gen.Items {
+		if !isPrintErr(item.FileMap) {
+			continue
+		}
+		if item.Id != 0 {
+			start = item.Id
+		}
+		item.Id = start
+		start++
+		temp[item.Name] = item
+	}
+	items := SortWithId(temp)
+	//生成
+	for _, item := range items {
+		//命名空间 or 包
+		namespace := "errid"
+		if value, ok := item.NameSpaceMap[KEY_ERR]; ok {
+			namespace = value
+		}
+		fname := item.FileMap[KEY_ERR]
+		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+		if err != nil {
+			return err
+		}
+		src := ""
+		if isNewFile {
+			src = "package " + namespace + "\n"
+			src += "\n"
+			src += "const ("
+		} else {
+			//读文件
+			data, err := ioutil.ReadAll(fd)
+			if err != nil {
+				return err
+			}
+			content := string(data)
+			i := strings.LastIndex(content, ")")
+			if i > 0 {
+				src += content[:i]
+			} else {
+				src += content
+			}
+		}
+		fd.Close()
+		src += gen.formatModel(item)
+		src += "\n)"
+		fd1, err := cleanFile(fname)
+		if err != nil {
+			return err
+		}
+		fd1.WriteString(src)
+		fd1.Close()
+	}
+	return nil
+}

@@ -5,36 +5,56 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"sync"
 )
 
+type MainConfig struct {
+	PathMap map[string]string `json:"PathMap"`
+	configMap map[string]*Config //配置集合
+}
+func (mc *MainConfig) Load(filePath string) error {
+	if err := LoadJsonConfig(filePath, mc); err != nil {
+		return err
+	}
+	for name, str := range mc.PathMap {
+		conf := NewConfig()
+		if err := LoadJsonConfig(str, conf); err != nil {
+			return err
+		}
+		mc.configMap[name] = conf
+	}
+	return nil
+}
+
+func NewMainConfig() *MainConfig {
+	return &MainConfig{
+		PathMap: make(map[string]string),
+		configMap: make(map[string]*Config),
+	}
+}
+
 type Config struct {
-	GameName   string         `json:"GameName"`
-	Path       string         `json:"Path"`
-	StartIndex int            `json:"StartIndex"`
+	Lang string `json:"Lang"` //要生成的语言类型 js,c#,go...
+	PathMap       map[string]string         `json:"Path"` //要生成的文件存放的路径
+	NameSpaceMap map[string]string `json:"Path"` //命名空间配置
 	Classes    []*ClassConfig `json:"Class"`
 }
 
 type ClassConfig struct {
 	Id             int        `json:"Id"`
-	NoPrintId      bool       `json:"NoPrintId"` //不打印id
 	Name           string     `json:"Name"`
 	Desc           string     `json:"Desc"`
-	MsgIdFileName  string     `json:"MsgIdFileName"`
 	MsgIdNameSpace string     `json:"MsgIdNameSpace"` //msgid 命名空间
-	ModelFileName  string     `json:"ModelFileName"`
 	ModelNameSpace string     `json:"ModelNameSpace"` //model 命名空间
 	Fields         [][]string `json:"Fields"`
 }
 
-var cgc *Config
-var cgcOnce = new(sync.Once)
-
-func GetCodeGenConfig() *Config {
-	cgcOnce.Do(func() {
-		cgc = &Config{Classes: []*ClassConfig{}}
-	})
-	return cgc
+func NewConfig() *Config {
+	back := &Config{
+		PathMap: make(map[string]string),
+		NameSpaceMap: make(map[string]string),
+		Classes: []*ClassConfig{},
+	}
+	return back
 }
 
 /*加载json格式的配置文件*/

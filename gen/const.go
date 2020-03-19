@@ -1,7 +1,14 @@
 package gen
 
-import (
-	"path/filepath"
+type GenerI interface {
+	Type() string
+	Gen() error
+}
+
+const (
+	LANG_GO string = "GO"
+	LANG_CSHARP string = "C#"
+	LANG_JS string = "JS"
 )
 
 const (
@@ -19,17 +26,15 @@ const (
 	POINT  string = "*"
 )
 
-var (
-	PATH = GetCurrPath()
-
-	MSGID_PACK_NAME = "msgid"
-	MSGID_PATH_NAME = ""
-
-	MODEL_PACK_NAME = "model"
-	MODEL_PATH_NAME = ""
+const (
+	ACTION_PRINT_ID string = "ID"
+	ACTION_PRINT_MODEL string = "MODEL"
+	ACTION_PRINT_ERR string = "ERR"
+	ACTION_PRINT_ID_AND_MODEL string = "ID_AND_MODEL"
 )
 
-func SetEnv() {
-	MSGID_PATH_NAME = filepath.Join(PATH, MSGID_PACK_NAME)
-	MODEL_PATH_NAME = filepath.Join(PATH, MODEL_PACK_NAME)
-}
+const (
+	KEY_ID string = "ID"
+	KEY_MODEL string = "MODEL"
+	KEY_ERR string = "ERR"
+)

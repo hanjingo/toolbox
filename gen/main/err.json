@@ -1,0 +1,12 @@
+{
+    "Path":"C://workspace//go//src//github.com//hanjingo//toolbox//gen//main",
+    "Class":[
+        {
+            "Name":"RoomNotExist",
+            "Desc":"房间不存在",
+            "Id":123,
+            "Action":"Err",
+            "ErrFileName":"err"
+        }
+    ]
+}
