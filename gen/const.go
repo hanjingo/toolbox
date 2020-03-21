@@ -38,3 +38,8 @@ const (
 	KEY_MODEL string = "MODEL"
 	KEY_ERR   string = "ERR"
 )
+
+var (
+	ID_IDX  int = 0
+	ERR_IDX int = 0
+)

@@ -17,6 +17,22 @@ func NewCsGenerator1(conf *Config) *CsGenerator1 {
 	}
 	for _, e := range conf.Classes {
 		class := NewClass(e, conf.PathMap, conf.NameSpaceMap)
+		if isPrintId(class.FileMap) {
+			if class.Id != 0 {
+				ID_IDX = class.Id
+			} else {
+				ID_IDX++
+			}
+			class.Id = ID_IDX
+		}
+		if isPrintErr(class.FileMap) {
+			if class.Id != 0 {
+				ERR_IDX = class.Id
+			} else {
+				ERR_IDX++
+			}
+			class.Id = ERR_IDX
+		}
 		back.Items[class.Name] = class
 	}
 	return back
@@ -31,6 +47,9 @@ func (gen *CsGenerator1) Gen() error {
 		return err
 	}
 	if err := gen.GenModel(); err != nil {
+		return err
+	}
+	if err := gen.GenErr(); err != nil {
 		return err
 	}
 	return nil
@@ -82,17 +101,11 @@ func (gen *CsGenerator1) formatMsgid(ci *Class) string {
 }
 func (gen *CsGenerator1) GenMsgid() error {
 	//msgid
-	start := 0
 	temp := make(map[string]*Class)
 	for _, item := range gen.Items {
 		if !isPrintId(item.FileMap) {
 			continue
 		}
-		if item.Id != 0 {
-			start = item.Id
-		}
-		item.Id = start
-		start++
 		temp[item.Name] = item
 	}
 	items := SortWithId(temp)
@@ -227,21 +240,15 @@ func (gen *CsGenerator1) formatErr(ci *Class) string {
 	back := ""
 	back += "\n"
 	back += "	" + ci.Name
-	back += " = err(" + strconv.Itoa(ci.Id) + ", " + "\"" + ci.Desc + "\")"
+	back += " = " + strconv.Itoa(ci.Id) + ", //" + ci.Desc
 	return back
 }
 func (gen *CsGenerator1) GenErr() error {
-	start := 0
 	temp := make(map[string]*Class)
 	for _, item := range gen.Items {
 		if !isPrintErr(item.FileMap) {
 			continue
 		}
-		if item.Id != 0 {
-			start = item.Id
-		}
-		item.Id = start
-		start++
 		temp[item.Name] = item
 	}
 	items := SortWithId(temp)
@@ -265,7 +272,7 @@ func (gen *CsGenerator1) GenErr() error {
 			src += "using System.Collections.Generic;\n"
 			src += "\n"
 			if namespace != "" {
-				src += "namespace " + namespace + "{"
+				src += "public enum " + namespace + ":UInt32{"
 			}
 		} else {
 			//读文件
@@ -274,7 +281,7 @@ func (gen *CsGenerator1) GenErr() error {
 				return err
 			}
 			content := string(data)
-			i := strings.LastIndex(content, ")")
+			i := strings.LastIndex(content, "}")
 			if i > 0 {
 				src += content[:i]
 			} else {

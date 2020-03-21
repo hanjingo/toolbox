@@ -19,6 +19,22 @@ func NewGoGenerator1(conf *Config) *GoGenerator1 {
 	}
 	for _, e := range conf.Classes {
 		class := NewClass(e, conf.PathMap, conf.NameSpaceMap)
+		if isPrintId(class.FileMap) {
+			if class.Id != 0 {
+				ID_IDX = class.Id
+			} else {
+				ID_IDX++
+			}
+			class.Id = ID_IDX
+		}
+		if isPrintErr(class.FileMap) {
+			if class.Id != 0 {
+				ERR_IDX = class.Id
+			} else {
+				ERR_IDX++
+			}
+			class.Id = ERR_IDX
+		}
 		back.Items[class.Name] = class
 	}
 	return back
@@ -87,17 +103,11 @@ func (gen *GoGenerator1) formatMsgid(ci *Class) string {
 }
 func (gen *GoGenerator1) GenMsgid() error {
 	//msgid
-	start := 0
 	temp := make(map[string]*Class)
 	for _, item := range gen.Items {
 		if !isPrintId(item.FileMap) {
 			continue
 		}
-		if item.Id != 0 {
-			start = item.Id
-		}
-		item.Id = start
-		start++
 		temp[item.Name] = item
 	}
 	items := SortWithId(temp)
@@ -204,17 +214,11 @@ func (gen *GoGenerator1) formatErr(ci *Class) string {
 	return back
 }
 func (gen *GoGenerator1) GenErr() error {
-	start := 0
 	temp := make(map[string]*Class)
 	for _, item := range gen.Items {
 		if !isPrintErr(item.FileMap) {
 			continue
 		}
-		if item.Id != 0 {
-			start = item.Id
-		}
-		item.Id = start
-		start++
 		temp[item.Name] = item
 	}
 	items := SortWithId(temp)
