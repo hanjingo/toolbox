@@ -1,13 +1,4 @@
 {
-    "Lang":"C#",
-    "Path":{
-        "ID":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\msgid\\msgid",
-        "MODEL":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\model\\model"
-    },
-    "NameSpace":{
-        "ID":"msgid",
-        "MODEL":"model"
-    },
     "Class":[
         {
             "Name":"JoinRoomReq",

@@ -5,58 +5,50 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"path/filepath"
-	"strings"
+	"os"
 )
 
 type MainConfig struct {
-	PathMap   map[string]string  `json:"PathMap"`
-	configMap map[string]*Config //配置集合
+	FileMap   map[string]*FileConfig `json:"File"`
+	configMap map[string]*Config     //配置集合
+}
+type FileConfig struct {
+	Lang         string            `json:"Lang"`       //要生成的语言类型 js,c#,go...
+	Path         string            `json:"Path"`       //文件路劲
+	PathMap      map[string]string `json:"CreatePath"` //要生成的文件存放的路径
+	NameSpaceMap map[string]string `json:"NameSpace"`  //命名空间配置
 }
 
 func (mc *MainConfig) Load(filePath string) error {
 	if err := LoadJsonConfig(filePath, mc); err != nil {
 		return err
 	}
-	for name, str := range mc.PathMap {
+	for name, f := range mc.FileMap {
 		conf := NewConfig()
-		if err := LoadJsonConfig(str, conf); err != nil {
+		if err := LoadJsonConfig(f.Path, conf); err != nil {
 			return err
 		}
-		conf.Init()
 		mc.configMap[name] = conf
+	}
+	//如果要创建的文件已经存在，删掉它
+	for _, cfg := range mc.FileMap {
+		for _, addr := range cfg.PathMap {
+			fmt.Println("文件:", addr, " 被删除")
+			os.Remove(addr)
+		}
 	}
 	return nil
 }
 
 func NewMainConfig() *MainConfig {
 	return &MainConfig{
-		PathMap:   make(map[string]string),
+		FileMap:   make(map[string]*FileConfig),
 		configMap: make(map[string]*Config),
 	}
 }
 
 type Config struct {
-	Lang         string            `json:"Lang"`      //要生成的语言类型 js,c#,go...
-	PathMap      map[string]string `json:"Path"`      //要生成的文件存放的路径
-	NameSpaceMap map[string]string `json:"NameSpace"` //命名空间配置
-	Classes      []*ClassConfig    `json:"Class"`
-}
-
-func (cfg *Config) Init() {
-	for k, v := range cfg.PathMap {
-		switch strings.ToUpper(cfg.Lang) {
-		case LANG_GO:
-			if ext := filepath.Ext(v); ext == "" {
-				cfg.PathMap[k] = v + ".go"
-			}
-		case LANG_CSHARP:
-			if ext := filepath.Ext(v); ext == "" {
-				cfg.PathMap[k] = v + ".cs"
-			}
-		case LANG_JS:
-		}
-	}
+	Classes []*ClassConfig `json:"Class"`
 }
 
 type ClassConfig struct {
@@ -68,9 +60,7 @@ type ClassConfig struct {
 
 func NewConfig() *Config {
 	back := &Config{
-		PathMap:      make(map[string]string),
-		NameSpaceMap: make(map[string]string),
-		Classes:      []*ClassConfig{},
+		Classes: []*ClassConfig{},
 	}
 	return back
 }

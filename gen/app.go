@@ -27,12 +27,17 @@ func (app *App) Load(addr string) error {
 	if err := app.Config.Load(addr); err != nil {
 		return err
 	}
-	for _, cfg := range app.Config.configMap {
+	for key, cfg := range app.Config.FileMap {
+		if _, ok := app.Config.configMap[key]; !ok {
+			continue
+		}
 		switch strings.ToUpper(cfg.Lang) {
 		case LANG_GO:
-			app.Geners = append(app.Geners, NewGoGenerator1(cfg))
+			app.Geners = append(app.Geners, NewGoGenerator1(
+				app.Config.configMap[key], cfg.PathMap, cfg.NameSpaceMap))
 		case LANG_CSHARP:
-			app.Geners = append(app.Geners, NewCsGenerator1(cfg))
+			app.Geners = append(app.Geners, NewCsGenerator1(
+				app.Config.configMap[key], cfg.PathMap, cfg.NameSpaceMap))
 		}
 	}
 	return nil

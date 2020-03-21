@@ -24,8 +24,8 @@ type Class struct {
 func NewClass(conf *ClassConfig, file map[string]string, namespace map[string]string) *Class {
 	back := &Class{
 		Fields:       []*Field{},
-		FileMap:      make(map[string]string),
-		NameSpaceMap: make(map[string]string),
+		FileMap:      file,
+		NameSpaceMap: namespace,
 	}
 	back.Id = conf.Id
 	back.Desc = conf.Desc
@@ -51,12 +51,6 @@ func NewClass(conf *ClassConfig, file map[string]string, namespace map[string]st
 			field.Type2 = value[4]
 		}
 		back.Fields = append(back.Fields, field)
-	}
-	for k, v := range file {
-		back.FileMap[k] = v
-	}
-	for k, v := range namespace {
-		back.NameSpaceMap[k] = v
 	}
 	return back
 }

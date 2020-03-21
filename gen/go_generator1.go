@@ -8,32 +8,35 @@ import (
 )
 
 type GoGenerator1 struct {
-	Items map[string]*Class //key:msg name  value:item集合
-	Conf  *Config           //配置
+	startIdx    int               //起始id
+	startErrIdx int               //起始错误id
+	Items       map[string]*Class //key:msg name  value:item集合
+	Conf        *Config           //配置
 }
 
-func NewGoGenerator1(conf *Config) *GoGenerator1 {
+func NewGoGenerator1(conf *Config, fileMap map[string]string,
+	namespaceMap map[string]string) *GoGenerator1 {
 	back := &GoGenerator1{
 		Items: make(map[string]*Class),
 		Conf:  conf,
 	}
 	for _, e := range conf.Classes {
-		class := NewClass(e, conf.PathMap, conf.NameSpaceMap)
+		class := NewClass(e, fileMap, namespaceMap)
 		if isPrintId(class.FileMap) {
 			if class.Id != 0 {
-				ID_IDX = class.Id
+				back.startIdx = class.Id
 			} else {
-				ID_IDX++
+				back.startIdx++
 			}
-			class.Id = ID_IDX
+			class.Id = back.startIdx
 		}
 		if isPrintErr(class.FileMap) {
 			if class.Id != 0 {
-				ERR_IDX = class.Id
+				back.startErrIdx = class.Id
 			} else {
-				ERR_IDX++
+				back.startErrIdx++
 			}
-			class.Id = ERR_IDX
+			class.Id = back.startErrIdx
 		}
 		back.Items[class.Name] = class
 	}
@@ -225,7 +228,7 @@ func (gen *GoGenerator1) GenErr() error {
 	//生成
 	for _, item := range items {
 		//命名空间 or 包
-		namespace := "errid"
+		namespace := "err"
 		if value, ok := item.NameSpaceMap[KEY_ERR]; ok {
 			namespace = value
 		}

@@ -1,11 +1,4 @@
 {
-    "Lang":"C#",
-    "Path":{
-        "ERR": "C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\err\\err"
-    },
-    "NameSpace":{
-        "Err":"err"
-    },
     "Class":[
         {
             "Name":"UNKNOWN_ERR",

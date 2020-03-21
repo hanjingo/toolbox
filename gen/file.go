@@ -2,6 +2,7 @@ package gen
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -19,6 +20,7 @@ func mustOpenFile(fileName string, flag int) (*os.File, bool, error) {
 		if err != nil {
 			return nil, false, err
 		}
+		fmt.Println("文件:", fileName, " 被创建")
 		return fd, true, nil
 	} else {
 		if !isFile(filePathName) {

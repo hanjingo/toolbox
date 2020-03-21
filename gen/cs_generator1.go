@@ -8,30 +8,33 @@ import (
 )
 
 type CsGenerator1 struct {
-	Items map[string]*Class //key:msg value:item集合
+	startIdx    int               //起始id
+	startErrIdx int               //起始错误id
+	Items       map[string]*Class //key:msg value:item集合
 }
 
-func NewCsGenerator1(conf *Config) *CsGenerator1 {
+func NewCsGenerator1(conf *Config, fileMap map[string]string,
+	namespaceMap map[string]string) *CsGenerator1 {
 	back := &CsGenerator1{
 		Items: make(map[string]*Class),
 	}
 	for _, e := range conf.Classes {
-		class := NewClass(e, conf.PathMap, conf.NameSpaceMap)
+		class := NewClass(e, fileMap, namespaceMap)
 		if isPrintId(class.FileMap) {
 			if class.Id != 0 {
-				ID_IDX = class.Id
+				back.startIdx = class.Id
 			} else {
-				ID_IDX++
+				back.startIdx++
 			}
-			class.Id = ID_IDX
+			class.Id = back.startIdx
 		}
 		if isPrintErr(class.FileMap) {
 			if class.Id != 0 {
-				ERR_IDX = class.Id
+				back.startErrIdx = class.Id
 			} else {
-				ERR_IDX++
+				back.startErrIdx++
 			}
-			class.Id = ERR_IDX
+			class.Id = back.startErrIdx
 		}
 		back.Items[class.Name] = class
 	}
@@ -255,7 +258,7 @@ func (gen *CsGenerator1) GenErr() error {
 	//生成
 	for _, item := range items {
 		//命名空间 or 包
-		namespace := "errid"
+		namespace := "Err"
 		if value, ok := item.NameSpaceMap[KEY_ERR]; ok {
 			namespace = value
 		}
