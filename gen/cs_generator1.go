@@ -70,7 +70,7 @@ func (gen *CsGenerator1) formatType(args ...string) string {
 	case UINT64:
 		return "UInt64"
 	case INT:
-		return "Int"
+		return "int"
 	case INT64:
 		return "Int64"
 	case FLOAT:
@@ -78,15 +78,15 @@ func (gen *CsGenerator1) formatType(args ...string) string {
 	case DOUBLE:
 		return "Float64"
 	case STRING:
-		return "String"
+		return "string"
 	case BOOL:
-		return "Bool"
+		return "bool"
 	case ARRAY:
 		return gen.formatType(args[1]) + "[]"
 	case MAP:
 		return "Dictionary<" + gen.formatType(args[1]) + ", " + gen.formatType(args[2]) + ">"
 	case POINT:
-		return gen.formatType(args[1]) + "*"
+		return gen.formatType(args[1])
 	default:
 		return args[0]
 	}
@@ -120,7 +120,7 @@ func (gen *CsGenerator1) GenMsgid() error {
 
 		//设置文件
 		fname := item.FileMap[KEY_ID]
-		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_CREATE)
+		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
 		if err != nil {
 			return err
 		}
@@ -130,8 +130,6 @@ func (gen *CsGenerator1) GenMsgid() error {
 		if isNewFile {
 			//赋值定义
 			src += "using System;\n"
-			src += "using System.Collections;\n"
-			src += "using System.Collections.Generic;\n"
 			src += "\n"
 			if namespace != "" {
 				src += "public enum " + namespace + ":UInt32{"
@@ -205,11 +203,9 @@ func (gen *CsGenerator1) GenModel() error {
 		if isNewFile {
 			//赋值定义
 			src += "using System;\n"
-			src += "using System.Collections;\n"
-			src += "using System.Collections.Generic;\n"
 			src += "\n"
 			if namespace != "" {
-				src = "namespace " + namespace + "{\n"
+				src += "namespace " + namespace + "{\n"
 			}
 		} else {
 			//读文件
@@ -271,8 +267,6 @@ func (gen *CsGenerator1) GenErr() error {
 		if isNewFile {
 			//赋值定义
 			src += "using System;\n"
-			src += "using System.Collections;\n"
-			src += "using System.Collections.Generic;\n"
 			src += "\n"
 			if namespace != "" {
 				src += "public enum " + namespace + ":UInt32{"

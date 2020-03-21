@@ -122,7 +122,7 @@ func (gen *GoGenerator1) GenMsgid() error {
 
 		//设置文件
 		fname := item.FileMap[KEY_ID]
-		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_CREATE)
+		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
 		if err != nil {
 			return err
 		}
@@ -199,7 +199,7 @@ func (gen *GoGenerator1) GenModel() error {
 		}
 		src := ""
 		if isNewFile {
-			src = "package " + namespace + "\n"
+			src += "package " + namespace + "\n"
 		}
 		src += gen.formatModel(item)
 		fd.WriteString(src)
@@ -213,7 +213,7 @@ func (gen *GoGenerator1) formatErr(ci *Class) string {
 	back := ""
 	back += "\n"
 	back += "	" + ci.Name
-	back += " = err(" + strconv.Itoa(ci.Id) + ", " + "\"" + ci.Desc + "\")"
+	back += " = " + strconv.Itoa(ci.Id) + "//" + ci.Desc
 	return back
 }
 func (gen *GoGenerator1) GenErr() error {
@@ -241,13 +241,7 @@ func (gen *GoGenerator1) GenErr() error {
 		if isNewFile {
 			src = "package " + namespace + "\n"
 			src += "\n"
-			src += "import (\n"
-			src += "	\"github.com/hanjingo/util\"\n"
-			src += ")\n"
-			src += "\n"
-			src += "var err = util.NewErr\n"
-			src += "\n"
-			src += "var ("
+			src += "const ("
 		} else {
 			//读文件
 			data, err := ioutil.ReadAll(fd)
