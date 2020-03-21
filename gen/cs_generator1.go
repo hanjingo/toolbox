@@ -36,7 +36,6 @@ func (gen *CsGenerator1) Gen() error {
 	return nil
 }
 
-
 func (gen *CsGenerator1) formatType(args ...string) string {
 	if args == nil || len(args) == 0 {
 		return ""
@@ -65,7 +64,7 @@ func (gen *CsGenerator1) formatType(args ...string) string {
 	case MAP:
 		return "Dictionary<" + gen.formatType(args[1]) + ", " + gen.formatType(args[2]) + ">"
 	case POINT:
-		return gen.formatType(args[1]) + "*";
+		return gen.formatType(args[1]) + "*"
 	default:
 		return args[0]
 	}
@@ -110,7 +109,6 @@ func (gen *CsGenerator1) GenMsgid() error {
 			return err
 		}
 
-
 		//设置内容
 		src := ""
 		if isNewFile {
@@ -119,7 +117,7 @@ func (gen *CsGenerator1) GenMsgid() error {
 			src += "using System.Collections;\n"
 			src += "using System.Collections.Generic;\n"
 			src += "\n"
-			if(namespace != "") {
+			if namespace != "" {
 				src += "public enum " + namespace + ":UInt32{"
 			}
 		} else {
@@ -179,7 +177,7 @@ func (gen *CsGenerator1) GenModel() error {
 
 		//设置文件
 		namespace := ""
-		if value, ok := item.NameSpaceMap[KEY_MODEL]; ok{
+		if value, ok := item.NameSpaceMap[KEY_MODEL]; ok {
 			namespace = value
 		}
 		fname := item.FileMap[KEY_MODEL]
@@ -213,6 +211,78 @@ func (gen *CsGenerator1) GenModel() error {
 		}
 		fd.Close()
 		src += gen.formatModel(item)
+		src += "\n}"
+		fd1, err := cleanFile(fname)
+		if err != nil {
+			return err
+		}
+		fd1.WriteString(src)
+		fd1.Close()
+	}
+	return nil
+}
+
+/*errid.cs*/
+func (gen *CsGenerator1) formatErr(ci *Class) string {
+	back := ""
+	back += "\n"
+	back += "	" + ci.Name
+	back += " = err(" + strconv.Itoa(ci.Id) + ", " + "\"" + ci.Desc + "\")"
+	return back
+}
+func (gen *CsGenerator1) GenErr() error {
+	start := 0
+	temp := make(map[string]*Class)
+	for _, item := range gen.Items {
+		if !isPrintErr(item.FileMap) {
+			continue
+		}
+		if item.Id != 0 {
+			start = item.Id
+		}
+		item.Id = start
+		start++
+		temp[item.Name] = item
+	}
+	items := SortWithId(temp)
+	//生成
+	for _, item := range items {
+		//命名空间 or 包
+		namespace := "errid"
+		if value, ok := item.NameSpaceMap[KEY_ERR]; ok {
+			namespace = value
+		}
+		fname := item.FileMap[KEY_ERR]
+		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+		if err != nil {
+			return err
+		}
+		src := ""
+		if isNewFile {
+			//赋值定义
+			src += "using System;\n"
+			src += "using System.Collections;\n"
+			src += "using System.Collections.Generic;\n"
+			src += "\n"
+			if namespace != "" {
+				src += "namespace " + namespace + "{"
+			}
+		} else {
+			//读文件
+			data, err := ioutil.ReadAll(fd)
+			if err != nil {
+				return err
+			}
+			content := string(data)
+			i := strings.LastIndex(content, ")")
+			if i > 0 {
+				src += content[:i]
+			} else {
+				src += content
+			}
+		}
+		fd.Close()
+		src += gen.formatErr(item)
 		src += "\n}"
 		fd1, err := cleanFile(fname)
 		if err != nil {

@@ -6,9 +6,9 @@ type GenerI interface {
 }
 
 const (
-	LANG_GO string = "GO"
+	LANG_GO     string = "GO"
 	LANG_CSHARP string = "C#"
-	LANG_JS string = "JS"
+	LANG_JS     string = "JS"
 )
 
 const (
@@ -27,14 +27,14 @@ const (
 )
 
 const (
-	ACTION_PRINT_ID string = "ID"
-	ACTION_PRINT_MODEL string = "MODEL"
-	ACTION_PRINT_ERR string = "ERR"
+	ACTION_PRINT_ID           string = "ID"
+	ACTION_PRINT_MODEL        string = "MODEL"
+	ACTION_PRINT_ERR          string = "ERR"
 	ACTION_PRINT_ID_AND_MODEL string = "ID_AND_MODEL"
 )
 
 const (
-	KEY_ID string = "ID"
+	KEY_ID    string = "ID"
 	KEY_MODEL string = "MODEL"
-	KEY_ERR string = "ERR"
+	KEY_ERR   string = "ERR"
 )

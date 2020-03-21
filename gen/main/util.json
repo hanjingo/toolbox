@@ -1,0 +1,58 @@
+{
+    "Lang":"GO",
+    "Path":{
+        "MODEL":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\model\\util"
+    },
+    "NameSpace":{
+        "MODEL":"model"
+    },
+    "Class":[
+        {
+            "Name":"RoomInfo",
+            "Desc":"房间信息",
+            "Fields":[
+                ["房间id", "Id", "int64"],
+                ["房间状态", "Status", "int64"],
+                ["游戏id", "GameId", "int"],
+                ["最大人数限制", "MaxPlayerNum", "int"],
+                ["总回合数", "TotalTurn", "int"],
+                ["筹码方案id", "ChipProjId", "uint32"]
+            ]
+        },
+        {
+            "Name":"PlayerInfo",
+            "Desc":"玩家信息",
+            "Fields":[
+                ["玩家id", "Id", "int64"],
+                ["玩家状态", "Status", "uint32"],
+                ["座位号", "SeatNum", "uint32"],
+                ["名字", "Name", "string"],
+                ["分数", "Score", "int"],
+                ["头像", "HeadImgUrl", "string"]
+            ]
+        },
+        {
+            "Name":"PlayerTotalSettleInfo",
+            "Desc":"玩家回合结算信息",
+            "Fields":[
+                ["用户id", "UserId", "int64"],
+                ["头像", "HeadImgUrl", "string"],
+                ["用户名", "UserName", "string"],
+                ["标签", "Tag", "string"],
+                ["分数变更", "ChangeScore", "int"]
+            ]
+        },
+        {
+            "Name":"PlayerTurnSettleInfo",
+            "Desc":"玩家回合结算信息",
+            "Fields":[
+                ["用户id", "UserId", "int64"],
+                ["用户名", "UserName", "string"],
+                ["头像", "HeadImgUrl", "string"],
+                ["分数变更", "ChangeScore", "int"],
+                ["是否是赢家", "IsWinner", "bool"],
+                ["牌集合", "Cards", "array", "int"]
+            ]
+        }
+    ]
+}

@@ -12,55 +12,28 @@ import (
 // for linux: go build -o gen main.go
 func main() {
 	for {
-		var cmd string
-		fmt.Println("请输入要生成的语言类型(go,js,c#...),按q退出>>")
-		fmt.Scanln(&cmd)
-		if strings.ToUpper(cmd) == "Q" {
+		var addr string
+		fmt.Println("请输入json文件绝对路径(例:c:\\007.json),按q退出,默认读取当前路径的main.json>>")
+		fmt.Scanln(&addr)
+		if strings.ToUpper(addr) == "Q" {
 			return
 		}
-		doGen(cmd)
+		doGen(addr)
 	}
 }
 
-func doGen(lang string) {
-	fmt.Println("请输入json文件绝对路径(例:c:\\007.json),默认读取当前路径的main.json>>")
-	var addr string
-	fmt.Scanln(&addr)
+func doGen(addr string) {
 	if addr == "" {
 		addr = filepath.Join(gg.GetCurrPath(), "main.json")
 	}
-	conf := gg.GetCodeGenConfig()
-	err := gg.LoadJsonConfig(addr, conf)
-	if err != nil {
-		fmt.Println("加载json文件失败,错误:", err)
+	app := gg.GetApp()
+	if err := app.Load(addr); err != nil {
+		fmt.Println("加载文件:", addr, "失败")
 		return
 	}
-	gg.PATH = conf.Path
-	gg.SetEnv()
-	switch strings.ToUpper(lang) {
-	case "GOLANG", "GO":
-		gen := gg.NewGoGenerator1(conf)
-		fmt.Println("生成GO类型消息id 结果:", check(gen.GenMsgid))
-		fmt.Println("生成GO类型数据结构 结果:", check(gen.GenModel))
-		fmt.Println("生成结束")
-	case "JAVASCRIPT", "JS":
-		return
-	case "C#":
-		gen := gg.NewCsGenerator1(conf)
-		fmt.Println("生成C#类型消息id 结果:", check(gen.GenMsgid))
-		fmt.Println("生成C#类型数据结构 结果:", check(gen.GenModel))
-		fmt.Println("生成结束")
-	default:
-		fmt.Println("不支持的语言类型")
+	if err := app.Gen(); err != nil {
+		fmt.Println("生成失败,错误:", err)
 		return
 	}
-
-}
-
-func check(f func() error) string {
-	err := f()
-	if err != nil {
-		return err.Error()
-	}
-	return "成功"
+	fmt.Println("生成成功!!!")
 }

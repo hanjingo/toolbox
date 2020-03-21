@@ -1,6 +1,7 @@
 {
-    "ConfigMap":{
-        "model":"C://workspace//go//src//github.com//hanjingo//toolbox//gen//main//model.json",
-        "err":"C://workspace//go//src//github.com//hanjingo//toolbox//gen//main//err.json"
+    "PathMap":{
+        "Model":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\model.json",
+        "Util":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\util.json",
+        "Err":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\err.json"
     }
 }

@@ -9,13 +9,13 @@ import (
 
 type GoGenerator1 struct {
 	Items map[string]*Class //key:msg name  value:item集合
-	Conf *Config //配置
+	Conf  *Config           //配置
 }
 
 func NewGoGenerator1(conf *Config) *GoGenerator1 {
 	back := &GoGenerator1{
 		Items: make(map[string]*Class),
-		Conf: conf,
+		Conf:  conf,
 	}
 	for _, e := range conf.Classes {
 		class := NewClass(e, conf.PathMap, conf.NameSpaceMap)
@@ -176,7 +176,7 @@ func (gen *GoGenerator1) GenModel() error {
 
 		//设置文件
 		namespace := ""
-		if value, ok := item.NameSpaceMap[KEY_MODEL]; ok{
+		if value, ok := item.NameSpaceMap[KEY_MODEL]; ok {
 			namespace = value
 		}
 		fname := item.FileMap[KEY_MODEL]
@@ -199,8 +199,8 @@ func (gen *GoGenerator1) GenModel() error {
 func (gen *GoGenerator1) formatErr(ci *Class) string {
 	back := ""
 	back += "\n"
-	back += ci.Name
-	back += " = Err(" + strconv.Itoa(ci.Id) + ", " + "\"" + ci.Desc + "\")" 
+	back += "	" + ci.Name
+	back += " = err(" + strconv.Itoa(ci.Id) + ", " + "\"" + ci.Desc + "\")"
 	return back
 }
 func (gen *GoGenerator1) GenErr() error {
@@ -234,7 +234,13 @@ func (gen *GoGenerator1) GenErr() error {
 		if isNewFile {
 			src = "package " + namespace + "\n"
 			src += "\n"
-			src += "const ("
+			src += "import (\n"
+			src += "	\"github.com/hanjingo/util\"\n"
+			src += ")\n"
+			src += "\n"
+			src += "var err = util.NewErr\n"
+			src += "\n"
+			src += "var ("
 		} else {
 			//读文件
 			data, err := ioutil.ReadAll(fd)
@@ -250,7 +256,7 @@ func (gen *GoGenerator1) GenErr() error {
 			}
 		}
 		fd.Close()
-		src += gen.formatModel(item)
+		src += gen.formatErr(item)
 		src += "\n)"
 		fd1, err := cleanFile(fname)
 		if err != nil {

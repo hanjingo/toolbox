@@ -13,18 +13,18 @@ type Field struct {
 }
 
 type Class struct {
-	Id             int      `json:"Id"`
-	Desc           string   `json:"Desc"`
-	Name           string   `json:"Name"`
-	Fields         []*Field `json:"Fields"`
-	FileMap map[string]string `json:"FileMap"`
+	Id           int               `json:"Id"`
+	Desc         string            `json:"Desc"`
+	Name         string            `json:"Name"`
+	Fields       []*Field          `json:"Fields"`
+	FileMap      map[string]string `json:"FileMap"`
 	NameSpaceMap map[string]string `json:"NameSpaceMap"`
 }
 
 func NewClass(conf *ClassConfig, file map[string]string, namespace map[string]string) *Class {
 	back := &Class{
-		Fields: []*Field{},
-		FileMap: make(map[string]string),
+		Fields:       []*Field{},
+		FileMap:      make(map[string]string),
 		NameSpaceMap: make(map[string]string),
 	}
 	back.Id = conf.Id

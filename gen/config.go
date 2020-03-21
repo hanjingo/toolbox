@@ -5,12 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
+	"strings"
 )
 
 type MainConfig struct {
-	PathMap map[string]string `json:"PathMap"`
+	PathMap   map[string]string  `json:"PathMap"`
 	configMap map[string]*Config //配置集合
 }
+
 func (mc *MainConfig) Load(filePath string) error {
 	if err := LoadJsonConfig(filePath, mc); err != nil {
 		return err
@@ -20,6 +23,7 @@ func (mc *MainConfig) Load(filePath string) error {
 		if err := LoadJsonConfig(str, conf); err != nil {
 			return err
 		}
+		conf.Init()
 		mc.configMap[name] = conf
 	}
 	return nil
@@ -27,32 +31,46 @@ func (mc *MainConfig) Load(filePath string) error {
 
 func NewMainConfig() *MainConfig {
 	return &MainConfig{
-		PathMap: make(map[string]string),
+		PathMap:   make(map[string]string),
 		configMap: make(map[string]*Config),
 	}
 }
 
 type Config struct {
-	Lang string `json:"Lang"` //要生成的语言类型 js,c#,go...
-	PathMap       map[string]string         `json:"Path"` //要生成的文件存放的路径
-	NameSpaceMap map[string]string `json:"Path"` //命名空间配置
-	Classes    []*ClassConfig `json:"Class"`
+	Lang         string            `json:"Lang"`      //要生成的语言类型 js,c#,go...
+	PathMap      map[string]string `json:"Path"`      //要生成的文件存放的路径
+	NameSpaceMap map[string]string `json:"NameSpace"` //命名空间配置
+	Classes      []*ClassConfig    `json:"Class"`
+}
+
+func (cfg *Config) Init() {
+	for k, v := range cfg.PathMap {
+		switch strings.ToUpper(cfg.Lang) {
+		case LANG_GO:
+			if ext := filepath.Ext(v); ext == "" {
+				cfg.PathMap[k] = v + ".go"
+			}
+		case LANG_CSHARP:
+			if ext := filepath.Ext(v); ext == "" {
+				cfg.PathMap[k] = v + ".cs"
+			}
+		case LANG_JS:
+		}
+	}
 }
 
 type ClassConfig struct {
-	Id             int        `json:"Id"`
-	Name           string     `json:"Name"`
-	Desc           string     `json:"Desc"`
-	MsgIdNameSpace string     `json:"MsgIdNameSpace"` //msgid 命名空间
-	ModelNameSpace string     `json:"ModelNameSpace"` //model 命名空间
-	Fields         [][]string `json:"Fields"`
+	Id     int        `json:"Id"`
+	Name   string     `json:"Name"`
+	Desc   string     `json:"Desc"`
+	Fields [][]string `json:"Fields"`
 }
 
 func NewConfig() *Config {
 	back := &Config{
-		PathMap: make(map[string]string),
+		PathMap:      make(map[string]string),
 		NameSpaceMap: make(map[string]string),
-		Classes: []*ClassConfig{},
+		Classes:      []*ClassConfig{},
 	}
 	return back
 }
