@@ -213,7 +213,7 @@ func (gen *GoGenerator1) formatErr(ci *Class) string {
 	back := ""
 	back += "\n"
 	back += "	" + ci.Name
-	back += " = " + strconv.Itoa(ci.Id) + "//" + ci.Desc
+	back += " uint32 = " + strconv.Itoa(ci.Id) + "//" + ci.Desc
 	return back
 }
 func (gen *GoGenerator1) GenErr() error {
