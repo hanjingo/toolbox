@@ -1,7 +1,7 @@
 {
     "File":{
         "GoModel":{
-            "Lang":"GO",
+            "Lang":"GO_V1",
             "Path":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\model.json",
             "CreatePath":{
                 "ID":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\msgid\\msgid.go",
@@ -13,7 +13,7 @@
             }
         },
         "GoUtil":{
-            "Lang":"GO",
+            "Lang":"GO_V1",
             "Path":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\util.json",
             "CreatePath":{
                 "MODEL":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\model\\util.go"
@@ -23,7 +23,7 @@
             }
         },
         "GoErr":{
-            "Lang":"GO",
+            "Lang":"GO_V1",
             "Path":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\err.json",
             "CreatePath":{
                 "ERR": "C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\err\\err.go"
@@ -33,35 +33,49 @@
             }
         },
         "CsModel":{
-            "Lang":"C#",
+            "Lang":"C#_V1",
             "Path":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\model.json",
             "CreatePath":{
-                "ID":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\msgid\\MsgId.cs",
-                "MODEL":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\model\\Model.cs"
+                "ID":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\msgid\\msgid.cs",
+                "MODEL":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\model\\model.cs"
             },
             "NameSpace":{
-                "ID":"MsgId",
-                "MODEL":"Model"
+                "ID":"msgid",
+                "MODEL":"model"
             }
         },
         "CsUtil":{
-            "Lang":"C#",
+            "Lang":"C#_V1",
             "Path":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\util.json",
             "CreatePath":{
-                "MODEL":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\model\\Util.cs"
+                "MODEL":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\model\\util.cs"
             },
             "NameSpace":{
-                "MODEL":"Model"
+                "MODEL":"model"
             }
         },
         "CsErr":{
-            "Lang":"C#",
+            "Lang":"C#_V1",
             "Path":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\err.json",
             "CreatePath":{
-                "ERR": "C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\err\\ErrId.cs"
+                "ERR": "C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\err\\err.cs"
             },
             "NameSpace":{
-                "ERR":"ErrId"
+                "ERR":"errid"
+            }
+        },
+        "DocModel":{
+            "Lang":"DOC_V1",
+            "Path":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\model.json",
+            "CreatePath":{
+                "DOC_MODEL":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\doc\\doc.txt"
+            }
+        },
+        "DocErr":{
+            "Lang":"DOC_V1",
+            "Path":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\err.json",
+            "CreatePath":{
+                "DOC_ERR":"C:\\work\\go\\src\\github.com\\hanjingo\\toolbox\\gen\\main\\doc\\doc.txt"
             }
         }
     }

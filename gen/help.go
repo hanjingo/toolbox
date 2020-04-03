@@ -26,6 +26,27 @@ func SortWithId(arg map[string]*Class) []*Class {
 	return back
 }
 
+//格式化一行 a columeSize+1字 b 24字 c
+func formatLine(size int, args ...string) string {
+	back := ""
+	colSize := defSize
+	if size > 0 {
+		colSize = size
+	}
+	i := 0
+	for _, arg := range args {
+		i++
+		back += arg
+		if i < len(args) {
+			for j := 0; len(arg)+j < colSize; j++ {
+				back += " "
+			}
+		}
+	}
+	back += " "
+	return back
+}
+
 //是否打印id
 func isPrintId(fileMap map[string]string) bool {
 	for k, path := range fileMap {
@@ -50,6 +71,26 @@ func isPrintModel(fileMap map[string]string) bool {
 func isPrintErr(fileMap map[string]string) bool {
 	for k, path := range fileMap {
 		if strings.ToUpper(k) == KEY_ERR && path != "" {
+			return true
+		}
+	}
+	return false
+}
+
+//是否打印文档model
+func isPrintDocModel(fileMap map[string]string) bool {
+	for k, path := range fileMap {
+		if strings.ToUpper(k) == KEY_DOC_MODEL && path != "" {
+			return true
+		}
+	}
+	return false
+}
+
+//是否打印文档err
+func isPrintDocErr(fileMap map[string]string) bool {
+	for k, path := range fileMap {
+		if strings.ToUpper(k) == KEY_DOC_ERR && path != "" {
 			return true
 		}
 	}

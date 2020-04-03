@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -8,41 +9,27 @@ import (
 )
 
 type CsGenerator1 struct {
-	startIdx    int               //起始id
-	startErrIdx int               //起始错误id
-	Items       map[string]*Class //key:msg value:item集合
+	FileMap      map[string]string //文件列表
+	NameSpaceMap map[string]string //命名空间
+	Items        map[string]*Class //key:msg value:item集合
 }
 
-func NewCsGenerator1(conf *Config, fileMap map[string]string,
+func NewCsGenerator1(cfgs []*ClassConfig, fileMap map[string]string,
 	namespaceMap map[string]string) *CsGenerator1 {
 	back := &CsGenerator1{
-		Items: make(map[string]*Class),
+		FileMap:      fileMap,
+		NameSpaceMap: namespaceMap,
+		Items:        make(map[string]*Class),
 	}
-	for _, e := range conf.Classes {
-		class := NewClass(e, fileMap, namespaceMap)
-		if isPrintId(class.FileMap) {
-			if class.Id != 0 {
-				back.startIdx = class.Id
-			} else {
-				back.startIdx++
-			}
-			class.Id = back.startIdx
-		}
-		if isPrintErr(class.FileMap) {
-			if class.Id != 0 {
-				back.startErrIdx = class.Id
-			} else {
-				back.startErrIdx++
-			}
-			class.Id = back.startErrIdx
-		}
-		back.Items[class.Name] = class
+	for _, e := range cfgs {
+		class := NewClass(e)
+		back.Items[e.Name] = class
 	}
 	return back
 }
 
 func (gen *CsGenerator1) Type() string {
-	return LANG_GO
+	return LANG_CSHARP_V1
 }
 
 func (gen *CsGenerator1) Gen() error {
@@ -103,61 +90,60 @@ func (gen *CsGenerator1) formatMsgid(ci *Class) string {
 	return back
 }
 func (gen *CsGenerator1) GenMsgid() error {
+	if !isPrintId(gen.FileMap) {
+		return nil
+	}
 	//msgid
 	temp := make(map[string]*Class)
 	for _, item := range gen.Items {
-		if !isPrintId(item.FileMap) {
+		if !isPrintId(gen.FileMap) {
 			continue
 		}
 		temp[item.Name] = item
 	}
 	items := SortWithId(temp)
-	for _, item := range items {
+	//读文件先
+	fname := gen.FileMap[KEY_ID]
+	if fname == "" {
+		return errors.New("生成c#版msgid时,无法读取空路径")
+	}
+	fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+	defer fd.Close()
+	if err != nil {
+		return err
+	}
+
+	content := ""
+	if isNewFile {
 		namespace := ""
-		if value, ok := item.NameSpaceMap[KEY_ID]; ok {
+		if value, ok := gen.NameSpaceMap[KEY_ID]; ok {
 			namespace = value
 		}
-
-		//设置文件
-		fname := item.FileMap[KEY_ID]
-		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+		content += "using System;\n"
+		content += "\n"
+		if namespace != "" {
+			content += "public enum " + namespace + ":UInt32{"
+		}
+	} else {
+		//读文件
+		data, err := ioutil.ReadAll(fd)
 		if err != nil {
 			return err
 		}
-
-		//设置内容
-		src := ""
-		if isNewFile {
-			//赋值定义
-			src += "using System;\n"
-			src += "\n"
-			if namespace != "" {
-				src += "public enum " + namespace + ":UInt32{"
-			}
+		temp := string(data)
+		i := strings.LastIndex(temp, "}")
+		if i > 0 {
+			content += temp[:i]
 		} else {
-			//读文件
-			data, err := ioutil.ReadAll(fd)
-			if err != nil {
-				return err
-			}
-			content := string(data)
-			i := strings.LastIndex(content, "}")
-			if i > 0 {
-				src += content[:i]
-			} else {
-				src += content
-			}
+			content += temp
 		}
-		fd.Close()
-		src += gen.formatMsgid(item)
-		src += "\n}"
-		fd1, err := cleanFile(fname)
-		if err != nil {
-			return err
-		}
-		fd1.WriteString(src)
-		fd1.Close()
 	}
+	//设置内容
+	for _, item := range items {
+		content += gen.formatMsgid(item)
+	}
+	content += "\n}"
+	fd.WriteString(content)
 	return nil
 }
 
@@ -182,55 +168,52 @@ func (gen *CsGenerator1) formatModel(ci *Class) string {
 	return back
 }
 func (gen *CsGenerator1) GenModel() error {
+	if !isPrintModel(gen.FileMap) {
+		return nil
+	}
+	//设置文件
+	content := ""
+	fname := gen.FileMap[KEY_MODEL]
+	if fname == "" {
+		return errors.New("生成c#版model时,无法读取空路径")
+	}
+	fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+	defer fd.Close()
+	if err != nil {
+		return err
+	}
+	if isNewFile {
+		namespace := ""
+		if value, ok := gen.NameSpaceMap[KEY_MODEL]; ok {
+			namespace = value
+		}
+		//赋值定义
+		content += "using System;\n"
+		content += "\n"
+		if namespace != "" {
+			content += "namespace " + namespace + "{\n"
+		}
+	} else {
+		//读文件
+		data, err := ioutil.ReadAll(fd)
+		if err != nil {
+			return err
+		}
+		temp := string(data)
+		i := strings.LastIndex(temp, "}")
+		if i > 0 {
+			content += temp[:i]
+		} else {
+			content += temp
+		}
+	}
 	//赋值
 	items := SortWithId(gen.Items)
 	for _, item := range items {
-		if !isPrintModel(item.FileMap) {
-			continue
-		}
-
-		//设置文件
-		namespace := ""
-		if value, ok := item.NameSpaceMap[KEY_MODEL]; ok {
-			namespace = value
-		}
-		fname := item.FileMap[KEY_MODEL]
-		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
-		if err != nil {
-			return err
-		}
-		src := ""
-		if isNewFile {
-			//赋值定义
-			src += "using System;\n"
-			src += "\n"
-			if namespace != "" {
-				src += "namespace " + namespace + "{\n"
-			}
-		} else {
-			//读文件
-			data, err := ioutil.ReadAll(fd)
-			if err != nil {
-				return err
-			}
-			content := string(data)
-			i := strings.LastIndex(content, "}")
-			if i > 0 {
-				src += content[:i]
-			} else {
-				src += content
-			}
-		}
-		fd.Close()
-		src += gen.formatModel(item)
-		src += "\n}"
-		fd1, err := cleanFile(fname)
-		if err != nil {
-			return err
-		}
-		fd1.WriteString(src)
-		fd1.Close()
+		content += gen.formatModel(item)
 	}
+	content += "\n}"
+	fd.WriteString(content)
 	return nil
 }
 
@@ -243,57 +226,57 @@ func (gen *CsGenerator1) formatErr(ci *Class) string {
 	return back
 }
 func (gen *CsGenerator1) GenErr() error {
+	if !isPrintErr(gen.FileMap) {
+		return nil
+	}
 	temp := make(map[string]*Class)
 	for _, item := range gen.Items {
-		if !isPrintErr(item.FileMap) {
-			continue
-		}
 		temp[item.Name] = item
 	}
 	items := SortWithId(temp)
-	//生成
-	for _, item := range items {
-		//命名空间 or 包
+
+	//开始填充数据
+	content := ""
+	fname := gen.FileMap[KEY_ERR]
+	if fname == "" {
+		return errors.New("生成c#版errid时,无法读取空路径")
+	}
+	fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+	defer fd.Close()
+	if err != nil {
+		return err
+	}
+	if isNewFile {
+		//赋值定义
 		namespace := "Err"
-		if value, ok := item.NameSpaceMap[KEY_ERR]; ok {
+		if value, ok := gen.NameSpaceMap[KEY_ERR]; ok {
 			namespace = value
 		}
-		fname := item.FileMap[KEY_ERR]
-		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+		content += "using System;\n"
+		content += "\n"
+		if namespace != "" {
+			content += "public enum " + namespace + ":UInt32{"
+		}
+	} else {
+		//读文件
+		data, err := ioutil.ReadAll(fd)
 		if err != nil {
 			return err
 		}
-		src := ""
-		if isNewFile {
-			//赋值定义
-			src += "using System;\n"
-			src += "\n"
-			if namespace != "" {
-				src += "public enum " + namespace + ":UInt32{"
-			}
+		temp := string(data)
+		i := strings.LastIndex(temp, "}")
+		if i > 0 {
+			content += temp[:i]
 		} else {
-			//读文件
-			data, err := ioutil.ReadAll(fd)
-			if err != nil {
-				return err
-			}
-			content := string(data)
-			i := strings.LastIndex(content, "}")
-			if i > 0 {
-				src += content[:i]
-			} else {
-				src += content
-			}
+			content += temp
 		}
-		fd.Close()
-		src += gen.formatErr(item)
-		src += "\n}"
-		fd1, err := cleanFile(fname)
-		if err != nil {
-			return err
-		}
-		fd1.WriteString(src)
-		fd1.Close()
 	}
+
+	//生成
+	for _, item := range items {
+		content += gen.formatErr(item)
+	}
+	content += "\n}"
+	fd.WriteString(content)
 	return nil
 }

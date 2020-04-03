@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	gg "github.com/hanjingo/toolbox/gen"
+	"github.com/hanjingo/toolbox/gen"
 )
 
 // for win:   go build -o gen.exe main.go
@@ -24,9 +24,9 @@ func main() {
 
 func doGen(addr string) {
 	if addr == "" {
-		addr = filepath.Join(gg.GetCurrPath(), "main.json")
+		addr = filepath.Join(gen.GetCurrPath(), "main.json")
 	}
-	app := gg.GetApp()
+	app := gen.GetApp()
 	if err := app.Load(addr); err != nil {
 		fmt.Println("加载文件:", addr, "失败")
 		return

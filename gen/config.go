@@ -9,8 +9,8 @@ import (
 )
 
 type MainConfig struct {
-	FileMap   map[string]*FileConfig `json:"File"`
-	configMap map[string]*Config     //配置集合
+	FileMap  map[string]*FileConfig  `json:"File"`
+	classMap map[string]*ClassConfig //类集合 key:类名 value:类定义
 }
 type FileConfig struct {
 	Lang         string            `json:"Lang"`       //要生成的语言类型 js,c#,go...
@@ -23,13 +23,11 @@ func (mc *MainConfig) Load(filePath string) error {
 	if err := LoadJsonConfig(filePath, mc); err != nil {
 		return err
 	}
-	for name, f := range mc.FileMap {
-		conf := NewConfig()
-		if err := LoadJsonConfig(f.Path, conf); err != nil {
-			return err
-		}
-		mc.configMap[name] = conf
-	}
+	mc.clean()
+	return nil
+}
+
+func (mc *MainConfig) clean() {
 	//如果要创建的文件已经存在，删掉它
 	for _, cfg := range mc.FileMap {
 		for _, addr := range cfg.PathMap {
@@ -37,13 +35,12 @@ func (mc *MainConfig) Load(filePath string) error {
 			os.Remove(addr)
 		}
 	}
-	return nil
 }
 
 func NewMainConfig() *MainConfig {
 	return &MainConfig{
-		FileMap:   make(map[string]*FileConfig),
-		configMap: make(map[string]*Config),
+		FileMap:  make(map[string]*FileConfig),
+		classMap: make(map[string]*ClassConfig),
 	}
 }
 

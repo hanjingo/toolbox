@@ -5,10 +5,12 @@ type GenerI interface {
 	Gen() error
 }
 
+//生成器版本
 const (
-	LANG_GO     string = "GO"
-	LANG_CSHARP string = "C#"
-	LANG_JS     string = "JS"
+	LANG_GO_V1     string = "GO_V1"
+	LANG_CSHARP_V1 string = "C#_V1"
+	LANG_JS_V1     string = "JS_V1"
+	LANG_DOC_V1    string = "DOC_V1"
 )
 
 const (
@@ -27,14 +29,11 @@ const (
 )
 
 const (
-	ACTION_PRINT_ID           string = "ID"
-	ACTION_PRINT_MODEL        string = "MODEL"
-	ACTION_PRINT_ERR          string = "ERR"
-	ACTION_PRINT_ID_AND_MODEL string = "ID_AND_MODEL"
+	KEY_ID        string = "ID"
+	KEY_MODEL     string = "MODEL"
+	KEY_ERR       string = "ERR"
+	KEY_DOC_MODEL string = "DOC_MODEL"
+	KEY_DOC_ERR   string = "DOC_ERR"
 )
 
-const (
-	KEY_ID    string = "ID"
-	KEY_MODEL string = "MODEL"
-	KEY_ERR   string = "ERR"
-)
+const defSize int = 24 //列宽

@@ -3,6 +3,7 @@
         {
             "Name":"JoinRoomReq",
             "Desc":"进房请求",
+            "Id":1,
             "Fields":[
                 ["房间id", "RoomId", "int64"]
             ]

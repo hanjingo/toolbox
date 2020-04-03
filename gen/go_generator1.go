@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -8,43 +9,29 @@ import (
 )
 
 type GoGenerator1 struct {
-	startIdx    int               //起始id
-	startErrIdx int               //起始错误id
-	Items       map[string]*Class //key:msg name  value:item集合
-	Conf        *Config           //配置
+	startIdx     int               //起始id
+	startErrIdx  int               //起始错误id
+	FileMap      map[string]string //文件列表
+	NameSpaceMap map[string]string //命名空间
+	Items        map[string]*Class //key:msg name  value:item集合
 }
 
-func NewGoGenerator1(conf *Config, fileMap map[string]string,
+func NewGoGenerator1(cfgs []*ClassConfig, fileMap map[string]string,
 	namespaceMap map[string]string) *GoGenerator1 {
 	back := &GoGenerator1{
-		Items: make(map[string]*Class),
-		Conf:  conf,
+		FileMap:      fileMap,
+		NameSpaceMap: namespaceMap,
+		Items:        make(map[string]*Class),
 	}
-	for _, e := range conf.Classes {
-		class := NewClass(e, fileMap, namespaceMap)
-		if isPrintId(class.FileMap) {
-			if class.Id != 0 {
-				back.startIdx = class.Id
-			} else {
-				back.startIdx++
-			}
-			class.Id = back.startIdx
-		}
-		if isPrintErr(class.FileMap) {
-			if class.Id != 0 {
-				back.startErrIdx = class.Id
-			} else {
-				back.startErrIdx++
-			}
-			class.Id = back.startErrIdx
-		}
-		back.Items[class.Name] = class
+	for _, e := range cfgs {
+		class := NewClass(e)
+		back.Items[e.Name] = class
 	}
 	return back
 }
 
 func (gen *GoGenerator1) Type() string {
-	return LANG_GO
+	return LANG_GO_V1
 }
 
 func (gen *GoGenerator1) Gen() error {
@@ -105,59 +92,59 @@ func (gen *GoGenerator1) formatMsgid(ci *Class) string {
 	return back
 }
 func (gen *GoGenerator1) GenMsgid() error {
+	if !isPrintId(gen.FileMap) {
+		return nil
+	}
 	//msgid
 	temp := make(map[string]*Class)
 	for _, item := range gen.Items {
-		if !isPrintId(item.FileMap) {
+		if !isPrintId(gen.FileMap) {
 			continue
 		}
 		temp[item.Name] = item
 	}
 	items := SortWithId(temp)
-	for _, item := range items {
+	//读文件先
+	fname := gen.FileMap[KEY_ID]
+	if fname == "" {
+		return errors.New("生成go版msgid时,无法读取空路径")
+	}
+	fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+	defer fd.Close()
+	if err != nil {
+		return err
+	}
+
+	content := ""
+	if isNewFile {
 		namespace := ""
-		if value, ok := item.NameSpaceMap[KEY_ID]; ok {
+		if value, ok := gen.NameSpaceMap[KEY_ID]; ok {
 			namespace = value
 		}
-
-		//设置文件
-		fname := item.FileMap[KEY_ID]
-		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+		//赋值定义
+		content += "package " + namespace + "\n"
+		content += "\n"
+		content += "const ("
+	} else {
+		//读文件
+		data, err := ioutil.ReadAll(fd)
 		if err != nil {
 			return err
 		}
-
-		//设置内容
-		src := ""
-		if isNewFile {
-			//赋值定义
-			src += "package " + namespace + "\n"
-			src += "\n"
-			src += "const ("
+		temp := string(data)
+		i := strings.LastIndex(temp, ")")
+		if i > 0 {
+			content += temp[:i]
 		} else {
-			//读文件
-			data, err := ioutil.ReadAll(fd)
-			if err != nil {
-				return err
-			}
-			content := string(data)
-			i := strings.LastIndex(content, ")")
-			if i > 0 {
-				src += content[:i]
-			} else {
-				src += content
-			}
+			content += temp
 		}
-		fd.Close()
-		src += gen.formatMsgid(item)
-		src += "\n)"
-		fd1, err := cleanFile(fname)
-		if err != nil {
-			return err
-		}
-		fd1.WriteString(src)
-		fd1.Close()
 	}
+	//设置内容
+	for _, item := range items {
+		content += gen.formatMsgid(item)
+	}
+	content += "\n)"
+	fd.WriteString(content)
 	return nil
 }
 
@@ -181,30 +168,39 @@ func (gen *GoGenerator1) formatModel(ci *Class) string {
 	return back
 }
 func (gen *GoGenerator1) GenModel() error {
-	//赋值
-	for _, item := range gen.Items {
-		if !isPrintModel(item.FileMap) {
-			continue
-		}
-
-		//设置文件
+	if !isPrintModel(gen.FileMap) {
+		return nil
+	}
+	//设置文件
+	content := ""
+	fname := gen.FileMap[KEY_MODEL]
+	if fname == "" {
+		return errors.New("生成go版model时,无法读取空路径")
+	}
+	fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+	defer fd.Close()
+	if err != nil {
+		return err
+	}
+	if isNewFile {
 		namespace := ""
-		if value, ok := item.NameSpaceMap[KEY_MODEL]; ok {
+		if value, ok := gen.NameSpaceMap[KEY_MODEL]; ok {
 			namespace = value
 		}
-		fname := item.FileMap[KEY_MODEL]
-		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+		content += "package " + namespace + "\n"
+	} else {
+		//读文件
+		data, err := ioutil.ReadAll(fd)
 		if err != nil {
 			return err
 		}
-		src := ""
-		if isNewFile {
-			src += "package " + namespace + "\n"
-		}
-		src += gen.formatModel(item)
-		fd.WriteString(src)
-		fd.Close()
+		content += string(data)
 	}
+	//赋值
+	for _, item := range gen.Items {
+		content += gen.formatModel(item)
+	}
+	fd.WriteString(content)
 	return nil
 }
 
@@ -217,54 +213,57 @@ func (gen *GoGenerator1) formatErr(ci *Class) string {
 	return back
 }
 func (gen *GoGenerator1) GenErr() error {
+	if !isPrintErr(gen.FileMap) {
+		return nil
+	}
 	temp := make(map[string]*Class)
 	for _, item := range gen.Items {
-		if !isPrintErr(item.FileMap) {
+		if !isPrintErr(gen.FileMap) {
 			continue
 		}
 		temp[item.Name] = item
 	}
 	items := SortWithId(temp)
-	//生成
-	for _, item := range items {
+
+	//开始填充数据
+	content := ""
+	fname := gen.FileMap[KEY_ERR]
+	if fname == "" {
+		return errors.New("生成go版errid时,无法读取空路径")
+	}
+	fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+	defer fd.Close()
+	if err != nil {
+		return err
+	}
+	if isNewFile {
 		//命名空间 or 包
 		namespace := "err"
-		if value, ok := item.NameSpaceMap[KEY_ERR]; ok {
+		if value, ok := gen.NameSpaceMap[KEY_ERR]; ok {
 			namespace = value
 		}
-		fname := item.FileMap[KEY_ERR]
-		fd, isNewFile, err := mustOpenFile(fname, os.O_RDWR|os.O_APPEND|os.O_CREATE)
+		content = "package " + namespace + "\n"
+		content += "\n"
+		content += "const ("
+	} else {
+		//读文件
+		data, err := ioutil.ReadAll(fd)
 		if err != nil {
 			return err
 		}
-		src := ""
-		if isNewFile {
-			src = "package " + namespace + "\n"
-			src += "\n"
-			src += "const ("
+		temp := string(data)
+		i := strings.LastIndex(temp, ")")
+		if i > 0 {
+			content += temp[:i]
 		} else {
-			//读文件
-			data, err := ioutil.ReadAll(fd)
-			if err != nil {
-				return err
-			}
-			content := string(data)
-			i := strings.LastIndex(content, ")")
-			if i > 0 {
-				src += content[:i]
-			} else {
-				src += content
-			}
+			content += temp
 		}
-		fd.Close()
-		src += gen.formatErr(item)
-		src += "\n)"
-		fd1, err := cleanFile(fname)
-		if err != nil {
-			return err
-		}
-		fd1.WriteString(src)
-		fd1.Close()
 	}
+	//生成
+	for _, item := range items {
+		content += gen.formatErr(item)
+	}
+	content += "\n)"
+	fd.WriteString(content)
 	return nil
 }
